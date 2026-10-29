@@ -1,0 +1,69 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# Lock files (keep pubspec.lock tracked)
+*.lock
+!pubspec.lock
+
+# Environment & Secrets
+*.env
+*.env.*
+*.keystore
+*.jks
+
+# Local Databases & Storage
+*.db
+*.sqlite
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Flutter / Dart core
+build/
+**/build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/coverage/
+
+# Windows
+windows/flutter/ephemeral/
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugins.cmake
+**/CMakeLists.txt.user
+
+# Android
+android/.gradle/
+android/local.properties
+/android/app/debug
+/android/app/profile
+/android/app/release
+android/key.properties
+
+# iOS / macOS
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/.symlinks/
+ios/Pods/
+**/ios/Flutter/.last_build_id
+.widget_preview/
+
+# Symbolication & Obfuscation
+app.*.symbols
+app.*.map.json

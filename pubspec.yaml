@@ -1,0 +1,39 @@
+name: ncmus
+description: "NCmus - Audio Core & Background Playback Engine"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  just_audio: ^0.9.36
+  just_audio_windows: ^0.2.3
+  audio_service: ^0.18.12
+  audio_session: ^0.1.19
+  rxdart: ^0.27.7
+  http: ^1.6.0
+  html: ^0.15.7
+  sqflite: ^2.4.4+2
+  sqflite_common_ffi: ^2.4.4
+  path_provider: ^2.1.6
+  audiotags: ^1.4.5
+  path: ^1.9.1
+  discord_rpc: ^0.0.2
+  dio: ^5.11.1
+  shared_preferences: ^2.5.6
+  window_manager: ^0.5.2
+  ffi: ^2.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon/
+
