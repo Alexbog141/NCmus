@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:audiotags/audiotags.dart';
+import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -156,20 +156,19 @@ class LocalStorageService {
         }
 
         try {
-          final tag = await AudioTags.read(file.path);
-          if (tag != null) {
-            if (tag.title != null && tag.title!.trim().isNotEmpty) {
-              title = tag.title!.trim();
-            }
-            if (tag.trackArtist != null && tag.trackArtist!.trim().isNotEmpty) {
-              artist = tag.trackArtist!.trim();
-            }
-            if (tag.duration != null && tag.duration! > 0) {
-              durationMs = tag.duration! * 1000;
-            }
+          final metadata = readMetadata(file, getImage: false);
+          if (metadata.title != null && metadata.title!.trim().isNotEmpty) {
+            title = metadata.title!.trim();
+          }
+          if (metadata.artist != null && metadata.artist!.trim().isNotEmpty) {
+            artist = metadata.artist!.trim();
+          }
+          if (metadata.duration != null &&
+              metadata.duration!.inMilliseconds > 0) {
+            durationMs = metadata.duration!.inMilliseconds;
           }
         } catch (_) {
-          // audiotags reading is best effort
+          // audio_metadata_reader reading is best effort
         }
 
         // Generate stable deterministic ID based on normalized file path

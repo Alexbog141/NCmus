@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:audiotags/audiotags.dart';
+import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -127,9 +127,9 @@ class StorageManager {
           final isPng = track.coverUrl!.toLowerCase().endsWith('.png');
           pictures.add(
             Picture(
-              pictureType: PictureType.coverFront,
-              mimeType: isPng ? MimeType.png : MimeType.jpeg,
-              bytes: coverResponse.bodyBytes,
+              coverResponse.bodyBytes,
+              isPng ? 'image/png' : 'image/jpeg',
+              PictureType.coverFront,
             ),
           );
         }
@@ -138,15 +138,16 @@ class StorageManager {
       }
     }
 
-    // 3. Прошивка ID3 метаданных через audiotags
+    // 3. Прошивка ID3 метаданных через audio_metadata_reader
     try {
-      final tag = Tag(
-        title: track.title,
-        trackArtist: track.artist,
-        album: track.title,
-        pictures: pictures,
-      );
-      await AudioTags.write(filePath, tag);
+      updateMetadata(file, (metadata) {
+        metadata.setTitle(track.title);
+        metadata.setArtist(track.artist);
+        metadata.setAlbum(track.title);
+        if (pictures.isNotEmpty) {
+          metadata.setPictures(pictures);
+        }
+      });
     } catch (_) {
       // Игнорируем ошибки неподдерживаемых форматов тегов
     }
