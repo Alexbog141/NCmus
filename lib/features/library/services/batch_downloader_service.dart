@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:audiotags/audiotags.dart';
+import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -223,14 +223,12 @@ class BatchDownloaderService {
     }
     await tempFile.rename(filePath);
 
-    // 4. Embed ID3 tags via audiotags (with safe fallback)
+    // 4. Embed ID3 tags via audio_metadata_reader (with safe fallback)
     try {
-      final tag = Tag(
-        title: track.title,
-        trackArtist: track.artist,
-        pictures: const [],
-      );
-      await AudioTags.write(filePath, tag);
+      updateMetadata(targetFile, (metadata) {
+        metadata.setTitle(track.title);
+        metadata.setArtist(track.artist);
+      });
     } catch (_) {
       // Fallback: continuing without tags if native platform fails
     }
