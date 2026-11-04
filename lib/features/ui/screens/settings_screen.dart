@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/audio/audio_player_handler.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/services/android_platform_service.dart';
 import '../../../core/services/discord_rpc_service.dart';
+import '../../../core/services/update_service.dart';
 import '../../../core/theme/cyberpunk_theme.dart';
 import '../../wave/services/nc_wave_service.dart';
+import '../widgets/update_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Settings screen for NCmus featuring theme preset customization,
@@ -23,12 +28,40 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _discordRpcEnabled = true;
+  bool _checkingForUpdates = false;
+  String _currentVersion = '…';
 
   @override
   void initState() {
     super.initState();
     DatabaseService.instance.getBlacklistCount();
     _loadDiscordRpcSetting();
+    unawaited(_loadCurrentVersion());
+  }
+
+  Future<void> _loadCurrentVersion() async {
+    try {
+      final version = await UpdateService.currentVersion();
+      if (mounted) {
+        setState(() => _currentVersion = version);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _currentVersion = 'неизвестно');
+      }
+    }
+  }
+
+  Future<void> _checkForUpdates() async {
+    if (_checkingForUpdates) return;
+    setState(() => _checkingForUpdates = true);
+    try {
+      await UpdateDialog.checkForUpdates(context);
+    } finally {
+      if (mounted) {
+        setState(() => _checkingForUpdates = false);
+      }
+    }
   }
 
   Future<void> _loadDiscordRpcSetting() async {
@@ -104,6 +137,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 14),
                   _buildDiscordRpcCard(activePreset),
+                  const SizedBox(height: 32),
+                  _buildSectionTitle(
+                    title: 'ОБНОВЛЕНИЯ ПРИЛОЖЕНИЯ',
+                    subtitle:
+                        'Проверка свежих сборок NCmus в GitHub Releases и установка нового APK.',
+                    icon: Icons.system_update_alt_rounded,
+                    accentColor: activePreset.primaryColor,
+                  ),
+                  const SizedBox(height: 14),
+                  _buildUpdateCard(activePreset),
                   const SizedBox(height: 32),
                   _buildSectionTitle(
                     title: 'О СИСТЕМЕ & LOCAL-FIRST',
@@ -433,6 +476,100 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildUpdateCard(AppThemePreset activePreset) {
+    final isAndroid = AndroidPlatformService.isAndroid;
+    return GlassCard(
+      borderRadius: 18,
+      blur: 16,
+      backgroundOpacity: 0.05,
+      borderGradient: CyberpunkTheme.glassBorderGradientSoft,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: activePreset.primaryColor.withValues(alpha: 0.16),
+              border: Border.all(
+                color: activePreset.primaryColor.withValues(alpha: 0.4),
+                width: 0.8,
+              ),
+            ),
+            child: Icon(
+              Icons.system_update_alt_rounded,
+              color: activePreset.primaryColor,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Проверка обновлений',
+                  style: TextStyle(
+                    color: CyberpunkTheme.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  isAndroid
+                      ? 'Текущая версия v$_currentVersion · APK устанавливается напрямую'
+                      : 'Текущая версия v$_currentVersion · установка APK доступна на Android',
+                  style: TextStyle(
+                    color: CyberpunkTheme.textMuted,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          FilledButton(
+            onPressed: _checkingForUpdates ? null : _checkForUpdates,
+            style: FilledButton.styleFrom(
+              backgroundColor:
+                  activePreset.primaryColor.withValues(alpha: 0.16),
+              foregroundColor: activePreset.primaryColor,
+              disabledBackgroundColor: Colors.white.withValues(alpha: 0.04),
+              disabledForegroundColor: Colors.white.withValues(alpha: 0.35),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: activePreset.primaryColor.withValues(alpha: 0.35),
+                  width: 0.6,
+                ),
+              ),
+            ),
+            child: _checkingForUpdates
+                ? SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.8,
+                      color: activePreset.primaryColor,
+                    ),
+                  )
+                : const Text(
+                    'ПРОВЕРИТЬ',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAboutCard(AppThemePreset activePreset) {
     return GlassCard(
       borderRadius: 18,
@@ -455,7 +592,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     width: 38,
                     height: 38,
                     color: activePreset.primaryColor.withValues(alpha: 0.2),
-                    child: Icon(Icons.music_note, color: activePreset.primaryColor),
+                    child: Icon(Icons.music_note,
+                        color: activePreset.primaryColor),
                   ),
                 ),
               ),
@@ -475,7 +613,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Версия 1.0.0 (Local-First Engine)',
+                      'Версия $_currentVersion (Local-First Engine)',
                       style: TextStyle(
                         color: CyberpunkTheme.textMuted,
                         fontSize: 11,
@@ -565,7 +703,8 @@ class _ThemePresetCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : CyberpunkTheme.textPrimary,
+                    color:
+                        isSelected ? Colors.white : CyberpunkTheme.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.4,

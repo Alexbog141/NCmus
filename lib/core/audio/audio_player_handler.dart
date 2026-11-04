@@ -272,7 +272,8 @@ class NCPlayerHandler extends BaseAudioHandler with SeekHandler {
   }
 
   /// Запуск воспроизведения с честной перетасовкой всей очереди (Фишер-Йетс)
-  Future<void> playShuffledQueue(List<MediaItem> items, {int startIndex = 0}) async {
+  Future<void> playShuffledQueue(List<MediaItem> items,
+      {int startIndex = 0}) async {
     if (items.isEmpty) return;
     currentSourceMode = AudioSourceMode.library;
     _originalQueue = List.from(items);
@@ -312,7 +313,8 @@ class NCPlayerHandler extends BaseAudioHandler with SeekHandler {
       ));
     } else {
       if (_originalQueue.isNotEmpty && currentItem != null) {
-        final originalIndex = _originalQueue.indexWhere((e) => e.id == currentItem.id);
+        final originalIndex =
+            _originalQueue.indexWhere((e) => e.id == currentItem.id);
         final targetIndex = originalIndex >= 0 ? originalIndex : 0;
         await setQueueAndPlay(_originalQueue, targetIndex);
       }
@@ -482,7 +484,8 @@ class NCPlayerHandler extends BaseAudioHandler with SeekHandler {
     _historyTimer = null;
     _loggedHistoryTrackKey = null;
 
-    final requested = _queue[index];
+    final requested = _withAlbum(_queue[index]);
+    _queue[index] = requested;
     _currentIndex = index;
 
     // Update the UI immediately so track changes feel instant while the
@@ -614,6 +617,21 @@ class NCPlayerHandler extends BaseAudioHandler with SeekHandler {
         playing: false,
       ),
     );
+  }
+
+  /// Ensures the media notification always has an album line. Tracks scraped
+  /// from the web often do not carry album metadata, so the source name (or
+  /// the app name) is used as a stable fallback.
+  MediaItem _withAlbum(MediaItem item) {
+    if (item.album != null && item.album!.trim().isNotEmpty) return item;
+
+    final explicitAlbum = item.extras?['album']?.toString().trim();
+    final sourceName = item.extras?['sourceName']?.toString().trim();
+    final album = (explicitAlbum != null && explicitAlbum.isNotEmpty)
+        ? explicitAlbum
+        : (sourceName != null && sourceName.isNotEmpty ? sourceName : 'NCmus');
+
+    return item.copyWith(album: album);
   }
 
   AudioSource _createAudioSource(

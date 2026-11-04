@@ -1,7 +1,7 @@
 name: ncmus
 description: "NCmus - Audio Core & Background Playback Engine"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.4+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -26,6 +26,7 @@ dependencies:
   shared_preferences: ^2.5.6
   window_manager: ^0.5.2
   ffi: ^2.2.0
+  package_info_plus: ^10.2.2
 
 dev_dependencies:
   flutter_test:

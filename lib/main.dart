@@ -9,6 +9,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'core/audio/audio_player_handler.dart';
 import 'core/database/database_service.dart';
+import 'core/services/android_platform_service.dart';
 import 'core/services/discord_rpc_service.dart';
 import 'core/services/window_overlay_service.dart';
 import 'core/theme/cyberpunk_theme.dart';
@@ -23,7 +24,8 @@ void main() async {
   DatabaseService.initFfiIfNeeded();
   await ThemeController.init();
 
-  final bool isDesktop = !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+  final bool isDesktop =
+      !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
 
   if (isDesktop && Platform.isWindows) {
     await windowManager.ensureInitialized();
@@ -51,17 +53,25 @@ void main() async {
   _audioHandler = await AudioService.init<NCPlayerHandler>(
     builder: () => NCPlayerHandler(),
     config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.ncmus.channel.audio',
+      androidNotificationChannelId: 'com.alexbog.ncmus.channel.audio',
       androidNotificationChannelName: 'NCmus Playback',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
-      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidNotificationIcon: 'drawable/ic_stat_ncmus',
     ),
   );
 
   WaveService.instance.attachHandler(_audioHandler);
 
   runApp(NCmusApp(handler: _audioHandler));
+
+  // Android 13+ needs a runtime permission before the media notification can
+  // be shown. Ask once after the first frame so the UI is already visible.
+  if (!kIsWeb && Platform.isAndroid) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(AndroidPlatformService.requestNotificationPermission());
+    });
+  }
 }
 
 class NCmusApp extends StatelessWidget {

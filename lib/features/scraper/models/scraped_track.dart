@@ -27,6 +27,7 @@ class ScrapedTrack {
       id: streamUrl,
       title: title,
       artist: artist,
+      album: sourceName,
       duration: duration,
       artUri: coverUrl != null && coverUrl!.isNotEmpty
           ? Uri.tryParse(coverUrl!)

@@ -15,6 +15,7 @@ import '../../wave/services/nc_wave_service.dart';
 import '../../wave/services/wave_service.dart';
 import '../widgets/cyber_window_controls.dart';
 import '../widgets/mini_player.dart';
+import '../widgets/update_dialog.dart';
 import 'home_wave_screen.dart';
 import 'library_screen.dart';
 import 'search_screen.dart';
@@ -87,6 +88,20 @@ class _HomeShellState extends State<HomeShell> {
 
     // Background scan of Music/NCmus folder on app startup
     unawaited(LocalStorageService.instance.scanAndSyncLocalFolder());
+
+    // Check GitHub Releases once per launch on Android. The dialog is only
+    // shown when a newer APK is actually available.
+    if (!kIsWeb && Platform.isAndroid) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await Future<void>.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+        await UpdateDialog.checkForUpdates(
+          context,
+          silent: true,
+          showLatestMessage: false,
+        );
+      });
+    }
 
     _waveStatusSub = WaveService.instance.statusMessages.listen((message) {
       if (!mounted) return;

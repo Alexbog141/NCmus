@@ -2057,6 +2057,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       id: 'top_artist_${artist.hashCode}_${title.hashCode}',
       title: title,
       artist: artist,
+      album: 'NCmus',
       duration: Duration(seconds: durationSeconds),
       artUri: artworkUrl != null && artworkUrl.isNotEmpty
           ? Uri.tryParse(artworkUrl)
@@ -2491,6 +2492,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       id: 'history_${item['id']}',
       title: title,
       artist: artist,
+      album: 'NCmus',
       duration: Duration(seconds: durationSeconds),
       artUri: artworkUrl != null && artworkUrl.isNotEmpty
           ? Uri.tryParse(artworkUrl)
